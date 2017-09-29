@@ -1,9 +1,10 @@
 #include "Graphics.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
 #include <d3dcompiler.h>
 #include <array>
 #include <iostream>
 #include <fstream>
-#include <xnamath.h>
 #include <vector>
 namespace Graphics {
 	D3D_FEATURE_LEVEL FeatureLevel;
@@ -54,16 +55,16 @@ namespace Graphics {
 	}
 
 	struct Vertex {
-		XMFLOAT3 Pos;
-		XMFLOAT3 Col;
+		DirectX::XMFLOAT3 Pos;
+		DirectX::XMFLOAT3 Col;
 	};
 	HRESULT InitTriangle() {
 
 		std::array<Vertex, 4> quad{
-			Vertex({XMFLOAT3(-0.5f,-0.5f,0.5f),XMFLOAT3(1.0f,1.0f,1.0f)}),
-			Vertex({XMFLOAT3(0.5f,-0.5f,0.5f),XMFLOAT3(0.6f,0.6f,0.6f)}),
-			Vertex({XMFLOAT3(0.5f,0.5f,0.5f),XMFLOAT3(0.3f,0.3f,0.3f)}),
-			Vertex({XMFLOAT3(-0.5f,0.5f,0.5f),XMFLOAT3(0.1f,0.1f,0.1f)})
+			Vertex({DirectX::XMFLOAT3(-0.5f,-0.5f,0.5f),DirectX::XMFLOAT3(1.0f,1.0f,1.0f)}),
+			Vertex({ DirectX::XMFLOAT3(0.5f,-0.5f,0.5f),DirectX::XMFLOAT3(0.6f,0.6f,0.6f)}),
+			Vertex({ DirectX::XMFLOAT3(0.5f,0.5f,0.5f),DirectX::XMFLOAT3(0.3f,0.3f,0.3f)}),
+			Vertex({ DirectX::XMFLOAT3(-0.5f,0.5f,0.5f),DirectX::XMFLOAT3(0.1f,0.1f,0.1f)})
 		};
 
 		std::vector<Vertex> model;
