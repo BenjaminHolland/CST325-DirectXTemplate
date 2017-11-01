@@ -26,7 +26,7 @@ ID3D11Buffer* Graphics::QuadBuffer;
 HRESULT Graphics::_init_vertex_shader() {
 	HRESULT result;
 	ID3DBlob* vs_shader_blob;
-	if (FAILED(result = D3DReadFileToBlob(L"BasicVertexShader.cso", &vs_shader_blob)))
+	if (FAILED(result = D3DReadFileToBlob(L"VertexShader.cso", &vs_shader_blob)))
 		return result;
 	D3D11_INPUT_ELEMENT_DESC input_layout[]{
 		D3D11_INPUT_ELEMENT_DESC{"POSITION",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
