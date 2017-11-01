@@ -24,3 +24,5 @@ cbuffer Time : register(b2)
         uint Frame;
     } Time;
 };
+Texture2D DefaultTexture : register(t0);
+SamplerState DefaultSampler : register(s0);

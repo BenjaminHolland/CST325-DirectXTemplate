@@ -38,6 +38,10 @@ private:
 	static ID3D11Buffer* TimeBuffer;
 	
 	static ID3D11Buffer* QuadBuffer;
+
+	static ID3D11ShaderResourceView* DefaultTexture;
+	static ID3D11SamplerState* DefaultSampler;
+	static HRESULT _init_texture();
 	static HRESULT _init_device_basics();
 	static HRESULT _init_back_buffer();
 	static HRESULT _init_pipeline();
@@ -48,9 +52,9 @@ private:
 	static HRESULT _init_time();
 	static HRESULT _init_quad();
 	static void _update();
+
 public:
 	static HRESULT initialize();
-	static inline bool is_initialized() { return _is_initialized; }
-	
+	static inline bool is_initialized() { return _is_initialized; }	
 	static void render();
 };

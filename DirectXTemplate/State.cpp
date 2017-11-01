@@ -29,7 +29,7 @@ HRESULT State::Camera::initialize()
 
 void State::Camera::update()
 {
-
+	
 }
 
 DirectX::XMFLOAT3 State::Light::Position = DirectX::XMFLOAT3{ 0,0,-10.0f };

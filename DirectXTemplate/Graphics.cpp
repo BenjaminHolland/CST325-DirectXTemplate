@@ -4,7 +4,7 @@
 #include "State.h"
 #include <d3dcompiler.h>
 #include <d3d11.h>
-
+#include "WICTextureLoader.h"
 ID3D11Device* Graphics::Device;
 ID3D11DeviceContext* Graphics::ImmediateContext;
 IDXGISwapChain* Graphics::SwapChain;
@@ -25,6 +25,10 @@ ID3D11Buffer* Graphics::TimeBuffer;
 Graphics::TimeState Graphics::TimeStateData;
 
 ID3D11Buffer* Graphics::QuadBuffer;
+
+ID3D11Resource* Texture;
+ID3D11ShaderResourceView* Graphics::DefaultTexture;
+ID3D11SamplerState* Graphics::DefaultSampler;
 
 HRESULT Graphics::_init_vertex_shader() {
 	HRESULT result;
@@ -204,6 +208,31 @@ HRESULT Graphics::_init_back_buffer() {
 	return S_OK;
 }
 
+HRESULT Graphics::_init_texture()
+{
+	HRESULT result;
+	if (FAILED(result = DirectX::CreateWICTextureFromFile(Device,L"HbVeZ6t.png", &Texture, &Graphics::DefaultTexture)))
+		return result;
+	D3D11_SAMPLER_DESC desc;
+	ZeroMemory(&desc, sizeof(D3D11_SAMPLER_DESC));
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
+	ID3D11SamplerState* state;
+	result = Device->CreateSamplerState(&desc, &state);
+	if (FAILED(result)) {
+		Texture->Release();
+		DefaultTexture->Release();
+		return result;
+	}
+	ImmediateContext->VSSetShaderResources(0, 1, &Graphics::DefaultTexture);
+	ImmediateContext->PSSetShaderResources(0, 1, &Graphics::DefaultTexture);
+	ImmediateContext->VSSetSamplers(0, 1, &state);
+	ImmediateContext->PSSetSamplers(0, 1, &state);
+	return result;
+}
+
 HRESULT Graphics::_init_device_basics()
 {
 	RECT client_rect;
@@ -226,7 +255,7 @@ HRESULT Graphics::_init_device_basics()
 	D3D_FEATURE_LEVEL acceptable_feature_levels[]{ D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0 };
 	D3D_DRIVER_TYPE acceptable_drivers[]{ D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE,D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_WARP };
 	D3D11_CREATE_DEVICE_FLAG flags = (D3D11_CREATE_DEVICE_FLAG)(
-		D3D11_CREATE_DEVICE_DEBUGGABLE|
+		D3D11_CREATE_DEVICE_DEBUGGABLE |
 		D3D11_CREATE_DEVICE_DEBUG);
 
 	HRESULT result;
@@ -241,6 +270,7 @@ HRESULT Graphics::_init_device_basics()
 }
 HRESULT Graphics::_init_pipeline()
 {
+	HRESULT result;
 	ImmediateContext->OMSetRenderTargets(1, &BackBufferRenderTargetView, BackBufferDepthStencilView);
 	ImmediateContext->VSSetShader(BasicVertexShader, NULL, 0);
 	ImmediateContext->PSSetShader(BasicPixelShader, NULL, 0);
@@ -265,6 +295,18 @@ HRESULT Graphics::_init_pipeline()
 	vp.MinDepth = 0;
 
 	ImmediateContext->RSSetViewports(1, &vp);
+
+	D3D11_RASTERIZER_DESC state_desc;
+	ZeroMemory(&state_desc, sizeof(D3D11_RASTERIZER_DESC));
+	state_desc.AntialiasedLineEnable = true;
+	state_desc.CullMode = D3D11_CULL_NONE;
+	state_desc.DepthClipEnable = true;
+	state_desc.FillMode = D3D11_FILL_SOLID;
+	ID3D11RasterizerState* state;
+	if (FAILED(result = Device->CreateRasterizerState(&state_desc, &state)))
+		return result;
+	ImmediateContext->RSSetState(state);
+	state->Release();
 	return S_OK;
 }
 
@@ -289,6 +331,9 @@ HRESULT Graphics::initialize()
 	if (FAILED(result = Graphics::_init_quad())) {
 		return result;
 	}
+	if (FAILED(result = Graphics::_init_texture())) {
+		return result;
+	}
 	if (FAILED(result = Graphics::_init_pipeline()))
 		return result;
 	return S_OK;
@@ -297,6 +342,7 @@ HRESULT Graphics::initialize()
 
 void Graphics::render()
 {
+	
 	_update();
 	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 	ImmediateContext->UpdateSubresource(LightBuffer, 0, NULL, &LightStateData, 0, 0);
@@ -309,17 +355,16 @@ void Graphics::render()
 	CameraStateData.World = DirectX::XMMatrixIdentity();
 	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 	ImmediateContext->Draw(6, 0);
-	
+
 	for (int i = 0; i < 10; i++) {
-		CameraStateData.World = DirectX::XMMatrixTranslation(i*0.1, i*0.1, i);
+		auto world = DirectX::XMMatrixIdentity();
+		//world=DirectX::XMMatrixMultiply(world, DirectX::XMMatrixRotationX(i*0.01));
+		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixTranslation(i*0.1,i*0.1, i));
+		CameraStateData.World = world;
 		ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 		ImmediateContext->Draw(6, 0);
 
 	}
-	
 
 	SwapChain->Present(1, NULL);
-	
-
-
 }

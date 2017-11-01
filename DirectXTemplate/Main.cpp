@@ -3,6 +3,7 @@
 #include "State.h"
 #include "Graphics.h"
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow) {
+	CoInitialize(NULL);
 	HRESULT result;
 	if (FAILED(result = Window::initialize(hInstance))) return result;
 	if (FAILED(result = EventLoop::initialize())) return result;
