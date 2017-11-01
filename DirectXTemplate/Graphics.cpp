@@ -211,7 +211,7 @@ HRESULT Graphics::_init_back_buffer() {
 HRESULT Graphics::_init_texture()
 {
 	HRESULT result;
-	if (FAILED(result = DirectX::CreateWICTextureFromFile(Device,L"HbVeZ6t.png", &Texture, &Graphics::DefaultTexture)))
+	if (FAILED(result = DirectX::CreateWICTextureFromFile(Device, L"HbVeZ6t.png", &Texture, &Graphics::DefaultTexture)))
 		return result;
 	D3D11_SAMPLER_DESC desc;
 	ZeroMemory(&desc, sizeof(D3D11_SAMPLER_DESC));
@@ -254,9 +254,9 @@ HRESULT Graphics::_init_device_basics()
 
 	D3D_FEATURE_LEVEL acceptable_feature_levels[]{ D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0 };
 	D3D_DRIVER_TYPE acceptable_drivers[]{ D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE,D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_WARP };
-	D3D11_CREATE_DEVICE_FLAG flags = (D3D11_CREATE_DEVICE_FLAG)(
-		D3D11_CREATE_DEVICE_DEBUGGABLE |
-		D3D11_CREATE_DEVICE_DEBUG);
+	D3D11_CREATE_DEVICE_FLAG flags = (D3D11_CREATE_DEVICE_FLAG)(0);
+		//D3D11_CREATE_DEVICE_DEBUGGABLE |
+		//D3D11_CREATE_DEVICE_DEBUG);
 
 	HRESULT result;
 	D3D_FEATURE_LEVEL actual_feature_level;
@@ -319,7 +319,6 @@ HRESULT Graphics::initialize()
 		return result;
 	if (FAILED(result = Graphics::_init_vertex_shader()))
 		return result;
-
 	if (FAILED(result = Graphics::_init_pixel_shader()))
 		return result;
 	if (FAILED(result = Graphics::_init_camera()))
@@ -342,7 +341,7 @@ HRESULT Graphics::initialize()
 
 void Graphics::render()
 {
-	
+
 	_update();
 	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 	ImmediateContext->UpdateSubresource(LightBuffer, 0, NULL, &LightStateData, 0, 0);
@@ -358,8 +357,9 @@ void Graphics::render()
 
 	for (int i = 0; i < 10; i++) {
 		auto world = DirectX::XMMatrixIdentity();
-		//world=DirectX::XMMatrixMultiply(world, DirectX::XMMatrixRotationX(i*0.01));
-		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixTranslation(i*0.1,i*0.1, i));
+		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixRotationZ(i*0.1));
+		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixScaling(1 + i*0.2, 1 + i*0.2, 1));
+		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixTranslation(0, 0, i));
 		CameraStateData.World = world;
 		ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 		ImmediateContext->Draw(6, 0);
