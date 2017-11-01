@@ -141,14 +141,17 @@ HRESULT Graphics::_init_quad()
 	Vertex final_verts[]{
 		verts[0],verts[3],verts[1],verts[1],verts[3],verts[2]
 	};
+
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.ByteWidth = sizeof(Vertex) * 6;
 	bd.Usage = D3D11_USAGE_IMMUTABLE;
+	
 	D3D11_SUBRESOURCE_DATA sd;
 	ZeroMemory(&sd, sizeof(D3D11_SUBRESOURCE_DATA));
 	sd.pSysMem = final_verts;
+	
 	if (FAILED(result = Device->CreateBuffer(&bd, &sd, &Graphics::QuadBuffer))) return result;
 	return S_OK;
 }
@@ -158,9 +161,14 @@ void Graphics::_update()
 	CameraStateData.View = DirectX::XMMatrixLookAtLH(
 		DirectX::XMLoadFloat3(&State::Camera::Position),
 		DirectX::XMLoadFloat3(&State::Camera::Target),
-		DirectX::XMLoadFloat3(&State::Camera::Up)
-	);
-	CameraStateData.Projection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(State::Camera::FieldOfView), 800 / 600.0f, State::Camera::NearPlane, State::Camera::FarPlane);
+		DirectX::XMLoadFloat3(&State::Camera::Up));
+
+	CameraStateData.Projection = DirectX::XMMatrixPerspectiveFovLH(
+		DirectX::XMConvertToRadians(State::Camera::FieldOfView),
+		800 / 600.0f,
+		State::Camera::NearPlane,
+		State::Camera::FarPlane);
+
 	CameraStateData.World = DirectX::XMMatrixIdentity();
 
 	LightStateData.Position = DirectX::XMLoadFloat3(&State::Light::Position);
@@ -205,6 +213,7 @@ HRESULT Graphics::_init_back_buffer() {
 	ds_buffer->Release();
 	if (FAILED(result))
 		return result;
+
 	return S_OK;
 }
 
@@ -213,12 +222,14 @@ HRESULT Graphics::_init_texture()
 	HRESULT result;
 	if (FAILED(result = DirectX::CreateWICTextureFromFile(Device, L"HbVeZ6t.png", &Texture, &Graphics::DefaultTexture)))
 		return result;
+
 	D3D11_SAMPLER_DESC desc;
 	ZeroMemory(&desc, sizeof(D3D11_SAMPLER_DESC));
 	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
+	
 	ID3D11SamplerState* state;
 	result = Device->CreateSamplerState(&desc, &state);
 	if (FAILED(result)) {
@@ -226,10 +237,11 @@ HRESULT Graphics::_init_texture()
 		DefaultTexture->Release();
 		return result;
 	}
-	ImmediateContext->VSSetShaderResources(0, 1, &Graphics::DefaultTexture);
-	ImmediateContext->PSSetShaderResources(0, 1, &Graphics::DefaultTexture);
+	
 	ImmediateContext->VSSetSamplers(0, 1, &state);
 	ImmediateContext->PSSetSamplers(0, 1, &state);
+	state->Release();
+
 	return result;
 }
 
@@ -268,23 +280,27 @@ HRESULT Graphics::_init_device_basics()
 
 	return result;
 }
+
 HRESULT Graphics::_init_pipeline()
 {
 	HRESULT result;
 	ImmediateContext->OMSetRenderTargets(1, &BackBufferRenderTargetView, BackBufferDepthStencilView);
-	ImmediateContext->VSSetShader(BasicVertexShader, NULL, 0);
-	ImmediateContext->PSSetShader(BasicPixelShader, NULL, 0);
-
+	
 	ID3D11Buffer* buffers[]{ CameraBuffer,LightBuffer,TimeBuffer };
+
+	ImmediateContext->VSSetShader(BasicVertexShader, NULL, 0);
 	ImmediateContext->VSSetConstantBuffers(0, 3, buffers);
+	ImmediateContext->VSSetShaderResources(0, 1, &Graphics::DefaultTexture);
+
+	ImmediateContext->PSSetShader(BasicPixelShader, NULL, 0);
 	ImmediateContext->PSSetConstantBuffers(0, 3, buffers);
-	ImmediateContext->IASetInputLayout(BasicVertexShaderLayout);
+	ImmediateContext->PSSetShaderResources(0, 1, &Graphics::DefaultTexture);
 
 	UINT strides, offsets;
 	strides = sizeof(Vertex);
 	offsets = 0;
+	ImmediateContext->IASetInputLayout(BasicVertexShaderLayout);
 	ImmediateContext->IASetVertexBuffers(0, 1, &QuadBuffer, &strides, &offsets);
-
 	ImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	D3D11_VIEWPORT vp;
@@ -293,8 +309,6 @@ HRESULT Graphics::_init_pipeline()
 	vp.Width = 800;
 	vp.MaxDepth = 1;
 	vp.MinDepth = 0;
-
-	ImmediateContext->RSSetViewports(1, &vp);
 
 	D3D11_RASTERIZER_DESC state_desc;
 	ZeroMemory(&state_desc, sizeof(D3D11_RASTERIZER_DESC));
@@ -305,8 +319,11 @@ HRESULT Graphics::_init_pipeline()
 	ID3D11RasterizerState* state;
 	if (FAILED(result = Device->CreateRasterizerState(&state_desc, &state)))
 		return result;
-	ImmediateContext->RSSetState(state);
 	state->Release();
+
+	ImmediateContext->RSSetViewports(1, &vp);
+	ImmediateContext->RSSetState(state);
+
 	return S_OK;
 }
 
@@ -347,8 +364,8 @@ void Graphics::render()
 	ImmediateContext->UpdateSubresource(LightBuffer, 0, NULL, &LightStateData, 0, 0);
 	ImmediateContext->UpdateSubresource(TimeBuffer, 0, NULL, &TimeStateData, 0, 0);
 
-	ImmediateContext->ClearDepthStencilView(BackBufferDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 	float clear_color[]{ 0.1f,0.4f,0.6f,1.0f };
+	ImmediateContext->ClearDepthStencilView(BackBufferDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 	ImmediateContext->ClearRenderTargetView(BackBufferRenderTargetView, clear_color);
 
 	CameraStateData.World = DirectX::XMMatrixIdentity();
