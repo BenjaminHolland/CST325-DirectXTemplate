@@ -122,10 +122,10 @@ HRESULT Graphics::_init_quad()
 	};
 
 	DirectX::XMFLOAT2 tex[]{
-		DirectX::XMFLOAT2{ 0,0 },
-		DirectX::XMFLOAT2{ 1,0 },
-		DirectX::XMFLOAT2{ 1,1 },
 		DirectX::XMFLOAT2{ 0,1 },
+		DirectX::XMFLOAT2{ 1,1 },
+		DirectX::XMFLOAT2{ 1,0 },
+		DirectX::XMFLOAT2{ 0,0 },
 	};
 
 	DirectX::XMFLOAT4 color{ 1.0f,0.0f,1.0f,1.0f };
