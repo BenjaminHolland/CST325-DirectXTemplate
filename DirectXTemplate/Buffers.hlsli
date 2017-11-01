@@ -1,3 +1,4 @@
+
 cbuffer Camera : register(b0)
 {
     struct camera_t
@@ -15,4 +16,11 @@ cbuffer Light : register(b1)
         float4 Position;
         float4 Color;
     } Light;
+};
+cbuffer Time : register(b2)
+{
+    struct time_t
+    {
+        uint Frame;
+    } Time;
 };

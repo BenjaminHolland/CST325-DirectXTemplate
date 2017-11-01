@@ -21,6 +21,9 @@ Graphics::CameraState Graphics::CameraStateData;
 ID3D11Buffer* Graphics::LightBuffer;
 Graphics::LightState Graphics::LightStateData;
 
+ID3D11Buffer* Graphics::TimeBuffer;
+Graphics::TimeState Graphics::TimeStateData;
+
 ID3D11Buffer* Graphics::QuadBuffer;
 
 HRESULT Graphics::_init_vertex_shader() {
@@ -68,7 +71,6 @@ HRESULT Graphics::_init_camera()
 	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.Usage = D3D11_USAGE_DEFAULT;
-//	bd.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
 	bd.ByteWidth = sizeof(Graphics::CameraState);
 
 	if (FAILED(result = Device->CreateBuffer(&bd, NULL, &Graphics::CameraBuffer)))
@@ -83,10 +85,23 @@ HRESULT Graphics::_init_light()
 	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.Usage = D3D11_USAGE_DEFAULT;
-//	bd.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
 	bd.ByteWidth = sizeof(Graphics::LightState);
 
 	if (FAILED(result = Device->CreateBuffer(&bd, NULL, &Graphics::LightBuffer)))
+		return result;
+	return S_OK;
+}
+
+HRESULT Graphics::_init_time()
+{
+	HRESULT result;
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(Graphics::TimeState);
+
+	if (FAILED(result = Device->CreateBuffer(&bd, NULL, &Graphics::TimeBuffer)))
 		return result;
 	return S_OK;
 }
@@ -113,31 +128,12 @@ HRESULT Graphics::_init_quad()
 	DirectX::XMFLOAT4 normal{ 0.0f,0.0f,1.0f,0.0f };
 
 	Vertex verts[]{
-		Vertex{
-			pos[0],
-			color,
-			normal,
-			tex[0]
-		},
-		Vertex{
-			pos[1],
-			color,
-			normal,
-			tex[1]
-		},
-		Vertex{
-			pos[2],
-			color,
-			normal,
-			tex[2]
-		},
-		Vertex{
-			pos[3],
-			color,
-			normal,
-			tex[3]
-		}
+		Vertex{pos[0],color,normal,tex[0]},
+		Vertex{pos[1],color,normal,tex[1]},
+		Vertex{pos[2],color,normal,tex[2]},
+		Vertex{pos[3],color,normal,tex[3]}
 	};
+
 	Vertex final_verts[]{
 		verts[0],verts[3],verts[1],verts[1],verts[3],verts[2]
 	};
@@ -165,6 +161,8 @@ void Graphics::_update()
 
 	LightStateData.Position = DirectX::XMLoadFloat3(&State::Light::Position);
 	LightStateData.Color = DirectX::XMLoadFloat3(&State::Light::Color);
+
+	TimeStateData.Frame = State::Time::Frame;
 
 }
 
@@ -244,18 +242,19 @@ HRESULT Graphics::_init_device_basics()
 HRESULT Graphics::_init_pipeline()
 {
 	ImmediateContext->OMSetRenderTargets(1, &BackBufferRenderTargetView, BackBufferDepthStencilView);
-	//ImmediateContext->OMSetRenderTargets(1, &BackBufferRenderTargetView, NULL);
 	ImmediateContext->VSSetShader(BasicVertexShader, NULL, 0);
 	ImmediateContext->PSSetShader(BasicPixelShader, NULL, 0);
 
-	ID3D11Buffer* buffers[]{ CameraBuffer,LightBuffer };
-	ImmediateContext->VSSetConstantBuffers(0, 2, buffers);
-	ImmediateContext->PSSetConstantBuffers(0, 2, buffers);
+	ID3D11Buffer* buffers[]{ CameraBuffer,LightBuffer,TimeBuffer };
+	ImmediateContext->VSSetConstantBuffers(0, 3, buffers);
+	ImmediateContext->PSSetConstantBuffers(0, 3, buffers);
 	ImmediateContext->IASetInputLayout(BasicVertexShaderLayout);
+
 	UINT strides, offsets;
 	strides = sizeof(Vertex);
 	offsets = 0;
 	ImmediateContext->IASetVertexBuffers(0, 1, &QuadBuffer, &strides, &offsets);
+
 	ImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	D3D11_VIEWPORT vp;
@@ -285,6 +284,8 @@ HRESULT Graphics::initialize()
 		return result;
 	if (FAILED(result = Graphics::_init_light()))
 		return result;
+	if (FAILED(result = Graphics::_init_time()))
+		return result;
 	if (FAILED(result = Graphics::_init_quad())) {
 		return result;
 	}
@@ -299,6 +300,7 @@ void Graphics::render()
 	_update();
 	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 	ImmediateContext->UpdateSubresource(LightBuffer, 0, NULL, &LightStateData, 0, 0);
+	ImmediateContext->UpdateSubresource(TimeBuffer, 0, NULL, &TimeStateData, 0, 0);
 
 	ImmediateContext->ClearDepthStencilView(BackBufferDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 	float clear_color[]{ 0.1f,0.4f,0.6f,1.0f };

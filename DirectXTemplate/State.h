@@ -28,4 +28,9 @@ public:
 		static DirectX::XMFLOAT3 Position;
 		static DirectX::XMFLOAT3 Color;
 	};
+	class Time {
+	public:
+		static unsigned int Frame;
+		static void update();
+	};
 };

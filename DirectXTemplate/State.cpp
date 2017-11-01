@@ -11,6 +11,7 @@ void State::update()
 {
 	State::Camera::update();
 	State::Light::update();
+	State::Time::update();
 }
 
 
@@ -44,4 +45,9 @@ void State::Light::update()
 	float z = 10 * sinf(time);
 	Position.z = z;
 
+}
+unsigned int State::Time::Frame = 0;
+void State::Time::update()
+{
+	State::Time::Frame += 1;
 }

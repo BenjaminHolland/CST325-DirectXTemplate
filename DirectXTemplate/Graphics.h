@@ -13,6 +13,10 @@ private:
 		DirectX::XMVECTOR Position;
 		DirectX::XMVECTOR Color;
 	};
+	struct TimeState {
+		unsigned int Frame;
+		float _padding[3];
+	};
 
 	static bool _is_initialized;
 	static ID3D11Device* Device;
@@ -27,10 +31,12 @@ private:
 
 	static CameraState CameraStateData;
 	static LightState LightStateData;
+	static TimeState TimeStateData;
+
 	static ID3D11Buffer* CameraBuffer;
 	static ID3D11Buffer* LightBuffer;
-
-
+	static ID3D11Buffer* TimeBuffer;
+	
 	static ID3D11Buffer* QuadBuffer;
 	static HRESULT _init_device_basics();
 	static HRESULT _init_back_buffer();
@@ -39,6 +45,7 @@ private:
 	static HRESULT _init_pixel_shader();
 	static HRESULT _init_camera();
 	static HRESULT _init_light();
+	static HRESULT _init_time();
 	static HRESULT _init_quad();
 	static void _update();
 public:
