@@ -373,7 +373,22 @@ void Graphics::render()
 	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 	ImmediateContext->Draw(6, 0);
 
-	
+
+	CameraStateData.World = DirectX::XMMatrixRotationY(1);
+	CameraStateData.World = DirectX::XMMatrixMultiply(CameraStateData.World, DirectX::XMMatrixTranslation(1, 0, 0));
+	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
+	ImmediateContext->Draw(6, 0);
+
+	CameraStateData.World = DirectX::XMMatrixRotationY(-1);
+	CameraStateData.World = DirectX::XMMatrixMultiply(CameraStateData.World, DirectX::XMMatrixTranslation(-1, 0, 0));
+	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
+	ImmediateContext->Draw(6, 0);
+
+	CameraStateData.World = DirectX::XMMatrixRotationX(-1);
+	CameraStateData.World = DirectX::XMMatrixMultiply(CameraStateData.World, DirectX::XMMatrixTranslation(0, 1, 0));
+	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
+	ImmediateContext->Draw(6, 0);
+
 
 	SwapChain->Present(1, NULL);
 }
