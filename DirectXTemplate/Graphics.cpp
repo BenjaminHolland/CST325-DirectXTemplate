@@ -129,7 +129,7 @@ HRESULT Graphics::_init_quad()
 	};
 
 	DirectX::XMFLOAT4 color{ 1.0f,0.0f,1.0f,1.0f };
-	DirectX::XMFLOAT4 normal{ 0.0f,0.0f,1.0f,0.0f };
+	DirectX::XMFLOAT4 normal{ 0.0f,0.0f,-1.0f,0.0f };
 
 	Vertex verts[]{
 		Vertex{pos[0],color,normal,tex[0]},
@@ -170,6 +170,7 @@ void Graphics::_update()
 		State::Camera::FarPlane);
 
 	CameraStateData.World = DirectX::XMMatrixIdentity();
+	CameraStateData.Position = DirectX::XMLoadFloat3(&State::Camera::Position);
 
 	LightStateData.Position = DirectX::XMLoadFloat3(&State::Light::Position);
 	LightStateData.Color = DirectX::XMLoadFloat3(&State::Light::Color);
@@ -372,16 +373,7 @@ void Graphics::render()
 	ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
 	ImmediateContext->Draw(6, 0);
 
-	for (int i = 0; i < 10; i++) {
-		auto world = DirectX::XMMatrixIdentity();
-		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixRotationZ(i*0.1));
-		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixScaling(1 + i*0.2, 1 + i*0.2, 1));
-		world = DirectX::XMMatrixMultiply(world, DirectX::XMMatrixTranslation(0, 0, i));
-		CameraStateData.World = world;
-		ImmediateContext->UpdateSubresource(CameraBuffer, 0, NULL, &CameraStateData, 0, 0);
-		ImmediateContext->Draw(6, 0);
-
-	}
+	
 
 	SwapChain->Present(1, NULL);
 }

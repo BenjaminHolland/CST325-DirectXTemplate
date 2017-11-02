@@ -3,10 +3,10 @@ cbuffer Camera : register(b0)
 {
     struct camera_t
     {
-    
         float4x4 World;
         float4x4 View;
         float4x4 Projection;
+        float4 Position;
     } Camera;
 };
 cbuffer Light : register(b1)

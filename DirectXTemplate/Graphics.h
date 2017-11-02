@@ -8,6 +8,7 @@ private:
 		DirectX::XMMATRIX World;
 		DirectX::XMMATRIX View;
 		DirectX::XMMATRIX Projection;
+		DirectX::XMVECTOR Position;
 	};
 	struct LightState {
 		DirectX::XMVECTOR Position;

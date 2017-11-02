@@ -17,6 +17,7 @@ VS_TO_PS main(HOST_TO_VS input)
     norm.xyz = input.Normal.xyz;
     norm.w = 1;
     norm = mul(w, norm);
+    
     //norm.x *= -1;
     
     //TODO: Properly Transform Normals/Textures
