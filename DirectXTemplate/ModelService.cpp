@@ -23,7 +23,7 @@ void loadTeapotModel(vector<Vertex>& dst) {
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> mats;
 	string error;
-	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "teapot.605.obj")) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "teapot.605.model.obj")) {
 		printf("%s\n", error.c_str());
 		throw exception();
 	}
