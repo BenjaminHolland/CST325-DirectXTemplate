@@ -43,8 +43,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Program Files %28x86%29\Windows Kits\10\Include;C:\Users\Ben\source\repos\DirectXTemplate\DirectXTemplate\dependencies\SFML\inc;C:\Users\Ben\source\repos\DirectXTemplate\DirectXTemplate\dependencies\DXTK\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\Windows Kits\10\Lib;C:\Users\Ben\source\repos\DirectXTemplate\DirectXTemplate\dependencies\DXTK\lib\x86;C:\Users\Ben\source\repos\DirectXTemplate\DirectXTemplate\dependencies\SFML\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files %28x86%29\Windows Kits\10\Include;$(ProjectDir)dependencies\SFML\inc;$(ProjectDir)dependencies\DXTK\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files %28x86%29\Windows Kits\10\Lib;$(ProjectDir)dependencies\DXTK\lib\x86;$(ProjectDir)dependencies\SFML\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>C:\Program Files %28x86%29\Windows Kits\10\Include;C:\Users\Ben\source\repos\DirectXTemplate\DirectXTemplate\dependencies\SFML\inc;C:\Users\Ben\source\repos\DirectXTemplate\DirectXTemplate\dependencies\DXTK\include;$(IncludePath)</IncludePath>
