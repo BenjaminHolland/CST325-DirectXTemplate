@@ -42,6 +42,6 @@ float4 main(VertexToPixel input) : SV_TARGET
     float4 lc3 = float4((l3.x + l3.y * 20) * l3c + l3.y * lcb3, 1);
     
 
-    return saturate(float4(cb*0.1, 1) +lc1 + lc2 + lc3);
+    return float4(normalize(float4(cb * 0.3, 1) + lc1 + lc2 + lc3).xyz,1);
 
 }
