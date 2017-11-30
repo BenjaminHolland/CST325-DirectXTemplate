@@ -93,6 +93,7 @@
     <ClCompile Include="ShaderService.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TextureService.cpp" />
+    <ClCompile Include="TimeService.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="WindowService.cpp" />
   </ItemGroup>
@@ -107,6 +108,7 @@
     <ClInclude Include="ShaderService.h" />
     <ClInclude Include="Standard.h" />
     <ClInclude Include="TextureService.h" />
+    <ClInclude Include="TimeService.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="WindowService.h" />
   </ItemGroup>

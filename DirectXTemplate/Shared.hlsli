@@ -1,3 +1,4 @@
+
 cbuffer TransformBuffer : register(b0)
 {
     struct TransformStateBufferType
@@ -16,7 +17,14 @@ cbuffer CameraBuffer : register(b1)
         float2 pad;
     } CameraState;
 }
-
+cbuffer TimeBuffer : register(b2)
+{
+    struct TimeStateBufferType
+    {
+        uint2 Discrete;
+        float2 Continuious;
+    } TimeState;
+}
 struct PipelineToVertex
 {
     float3 Position : POSITION0;

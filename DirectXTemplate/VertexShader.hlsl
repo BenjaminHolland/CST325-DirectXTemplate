@@ -17,7 +17,7 @@ VertexToPixel main( PipelineToVertex input )
     normal = mul(normal,world);
     output.Normal = normalize(normal.xyz);
 
-    output.Normal = -input.Normal;
+   // output.Normal = input.Normal;
     output.Texture = input.Texture;
     return output;
 }

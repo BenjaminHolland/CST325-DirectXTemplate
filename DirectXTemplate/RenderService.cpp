@@ -112,6 +112,9 @@ cst::RenderService::RenderService()
 		bufferService.with([&](CameraBufferStateType &state, auto buffer) {
 			buffers.push_back(buffer.Get());
 		});
+		bufferService.with([&](TimeBufferStateType &state, auto buffer) {
+			buffers.push_back(buffer.Get());
+		});
 		shaderService.with("Main", [&](ComPtr<ID3D11VertexShader> shader) {
 			context->VSSetShader(shader.Get(), NULL, 0);
 			context->VSSetConstantBuffers(0,buffers.size(),buffers.data());
@@ -161,14 +164,22 @@ void cst::RenderService::update()
 		bs.with([&](TransformBufferStateType &state, auto buffer) {
 			context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
 		});
+		bs.with([&](TimeBufferStateType &state, auto buffer) {
+			context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
+		});
 		ss.with([&](ComPtr<ID3D11RenderTargetView> renderTarget) {
 			context->ClearRenderTargetView(renderTarget.Get(), DirectX::Colors::AliceBlue);
 		});
 		ss.with([&](ComPtr<ID3D11DepthStencilView> depthStencil) {
 			context->ClearDepthStencilView(depthStencil.Get(), D3D11_CLEAR_DEPTH , 1.0f, 0);
 		});
+		
 		modelService.with("XZQuad", [&](ModelInfo info) {
 			context->Draw(info.VertexCount,0);
+		});
+		bs.with([&](TransformBufferStateType &state, auto buffer) {
+			
+			context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
 		});
 
 	});
