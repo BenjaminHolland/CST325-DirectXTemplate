@@ -97,10 +97,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
+    <FxCompile Include="WVPShader.vertex.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
+    <FxCompile Include="ObjectShader.pixel.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxShader.pixel.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>

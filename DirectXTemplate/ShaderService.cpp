@@ -11,23 +11,42 @@ cst::ShaderService::ShaderService() :_vs(), _ps(), _layouts()
 	screenService.with([this, &screenService](ComPtr<ID3D11Device> device) {
 		ComPtr<ID3DBlob> shaderBlob;
 		ComPtr<ID3DBlob> errorBlob;
-
-		if (FAILED(D3DCompileFromFile(L"VertexShader.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", NULL,NULL, &shaderBlob, &errorBlob))) {
+		
+		if (FAILED(D3DCompileFromFile(L"WVPShader.vertex.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", NULL,NULL, &shaderBlob, &errorBlob))) {
 			printf("%s\n", (char*)errorBlob->GetBufferPointer());
 			throw exception((char*)errorBlob->GetBufferPointer(),errorBlob->GetBufferSize());
 		}
 		ComPtr<ID3D11VertexShader> vs;
-		ComPtr<ID3D11InputLayout> layout;
-		ComPtr<ID3D11PixelShader> ps;
 		ThrowIfFailed(device->CreateVertexShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &vs));
+		_vs.insert({ "WVP",vs });
+		
+		ComPtr<ID3D11InputLayout> layout;
 		ThrowIfFailed(device->CreateInputLayout(VERTEX_FORMAT, 4, shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), &layout));
-		if (FAILED(D3DCompileFromFile(L"PixelShader.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", NULL, NULL, &shaderBlob, &errorBlob))) {
+		_layouts.insert({ "PNCT",layout });
+
+		
+	});
+	screenService.with([&](ComPtr<ID3D11Device> device) {
+		ComPtr<ID3DBlob> shaderBlob;
+		ComPtr<ID3DBlob> errorBlob;
+		ComPtr<ID3D11PixelShader> ps;
+
+		if (FAILED(D3DCompileFromFile(L"ObjectShader.pixel.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", NULL, NULL, &shaderBlob, &errorBlob))) {
 			throw exception((char*)errorBlob->GetBufferPointer());
 		}
 		ThrowIfFailed(device->CreatePixelShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &ps));
-		_vs.insert({ "Main",vs });
-		_layouts.insert({ "Main",layout });
-		_ps.insert({ "Main",ps });
+		_ps.insert({ "Object",ps });
+	});
+	screenService.with([&](ComPtr<ID3D11Device> device) {
+		ComPtr<ID3DBlob> shaderBlob;
+		ComPtr<ID3DBlob> errorBlob;
+		ComPtr<ID3D11PixelShader> ps;
+
+		if (FAILED(D3DCompileFromFile(L"SkyboxShader.pixel.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", NULL, NULL, &shaderBlob, &errorBlob))) {
+			throw exception((char*)errorBlob->GetBufferPointer());
+		}
+		ThrowIfFailed(device->CreatePixelShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &ps));
+		_ps.insert({ "Skybox",ps });
 	});
 
 }

@@ -106,6 +106,35 @@ void createQuadModel(vector<Vertex>& dst) {
 		}
 	}
 }
+void createSkyboxModel(vector<Vertex>& dst) {
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> mats;
+	string error;
+	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "skybox.obj")) {
+		printf("%s\n", error.c_str());
+		throw exception();
+	}
+	for (auto shape : shapes) {
+		printf("loading %s", shape.name.c_str());
+		size_t index_offset = 0;
+		for (auto vcount : shape.mesh.num_face_vertices) {
+			for (size_t vertex_offset = 0; vertex_offset < vcount; vertex_offset++) {
+				tinyobj::index_t idx = shape.mesh.indices[index_offset + vertex_offset];
+				tinyobj::real_t vx = attrib.vertices[3 * idx.vertex_index + 0];
+				tinyobj::real_t vy = attrib.vertices[3 * idx.vertex_index + 1];
+				tinyobj::real_t vz = attrib.vertices[3 * idx.vertex_index + 2];
+				tinyobj::real_t nx = attrib.normals[3 * idx.normal_index + 0];
+				tinyobj::real_t ny = attrib.normals[3 * idx.normal_index + 1];
+				tinyobj::real_t nz = attrib.normals[3 * idx.normal_index + 2];
+				tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
+				tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
+				dst.push_back({ { vx,vy,vz },{ -nx,-ny,-nz },{ 1,1,0,1 },{ tx,1-ty } });
+			}
+			index_offset += vcount;
+		}
+	}
+}
 cst::ModelService::ModelService()
 {
 	auto &screenService = ScreenService::current();
@@ -122,7 +151,23 @@ cst::ModelService::ModelService()
 		
 		ComPtr<ID3D11Buffer> buffer;
 		ThrowIfFailed(device->CreateBuffer(&bd, &sd, &buffer));
-		_models.insert({ "XZQuad",{buffer,quadModelVerts.size()} });
+		_models.insert({ "Teapot",{buffer,quadModelVerts.size()} });
+	
+	});
+	screenService.with([this](ComPtr<ID3D11Device> device) {
+		vector<Vertex> quadModelVerts;
+		createSkyboxModel(quadModelVerts);
+
+		D3D11_BUFFER_DESC bd = {};
+		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bd.ByteWidth = sizeof(Vertex)*quadModelVerts.size();
+
+		D3D11_SUBRESOURCE_DATA sd = {};
+		sd.pSysMem = quadModelVerts.data();
+
+		ComPtr<ID3D11Buffer> buffer;
+		ThrowIfFailed(device->CreateBuffer(&bd, &sd, &buffer));
+		_models.insert({ "Skybox",{ buffer,quadModelVerts.size() } });
 
 	});
 }

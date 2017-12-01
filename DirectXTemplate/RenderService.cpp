@@ -4,6 +4,7 @@
 #include "ModelService.h"
 #include "BufferService.h"
 #include "TextureService.h"
+#include "CameraService.h"
 #include "Vertex.h"
 #include <vector>
 using namespace std;
@@ -101,7 +102,7 @@ cst::RenderService::RenderService()
 			});
 		});
 		
-		shaderService.with("Main", [this, &context](ComPtr<ID3D11InputLayout> layout) {
+		shaderService.with("PNCT", [this, &context](ComPtr<ID3D11InputLayout> layout) {
 			context->IASetInputLayout(layout.Get());
 		});
 		vector<ID3D11Buffer*> buffers;
@@ -115,27 +116,32 @@ cst::RenderService::RenderService()
 		bufferService.with([&](TimeBufferStateType &state, auto buffer) {
 			buffers.push_back(buffer.Get());
 		});
-		shaderService.with("Main", [&](ComPtr<ID3D11VertexShader> shader) {
+		shaderService.with("WVP", [&](ComPtr<ID3D11VertexShader> shader) {
 			context->VSSetShader(shader.Get(), NULL, 0);
-			context->VSSetConstantBuffers(0,buffers.size(),buffers.data());
+			context->VSSetConstantBuffers(0, buffers.size(), buffers.data());
 		});
 
-		shaderService.with("Main", [&](ComPtr<ID3D11PixelShader> shader) {
-			context->PSSetShader(shader.Get(), NULL, 0);
-			context->PSSetConstantBuffers(0, buffers.size(), buffers.data());
-			vector<ID3D11SamplerState*> samplers;
-			samplers.push_back(defaultSamplerState.Get());
-			context->PSSetSamplers(0, 1, samplers.data());
-			vector<ID3D11ShaderResourceView*> resources;
-			textureService.withResource("Noise1", [&](ComPtr<ID3D11ShaderResourceView> resource) {
-				resources.push_back(resource.Get());
+		modelService.with("Teapot", [&](ModelInfo model) {
+			
+			shaderService.with("Object", [&](ComPtr<ID3D11PixelShader> shader) {
+				context->PSSetShader(shader.Get(), NULL, 0);
+				context->PSSetConstantBuffers(0, buffers.size(), buffers.data());
+				
+				vector<ID3D11SamplerState*> samplers;
+				samplers.push_back(defaultSamplerState.Get());
+				context->PSSetSamplers(0, 1, samplers.data());
+				
+				vector<ID3D11ShaderResourceView*> resources;
+				textureService.withResource("Noise1", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+					resources.push_back(resource.Get());
+				});
+
+				context->PSSetShaderResources(0, 1, resources.data());
 			});
-			context->PSSetShaderResources(0, 1, resources.data());
-		});
-		modelService.with("XZQuad", [this, &context](ModelInfo model) {
 			unsigned int strides = sizeof(Vertex);
 			unsigned int offsets = 0;
 			ID3D11Buffer* buffers[] = { model.Buffer.Get() };
+
 			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
 		});
 		context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -157,6 +163,9 @@ void cst::RenderService::update()
 	auto &ss = ScreenService::current();
 	auto &bs = BufferService::current();
 	auto &modelService = ModelService::current();
+	auto &textureService = TextureService::current();
+	auto &shaderService = ShaderService::current();
+	auto &cameraService = CameraService::current();
 	ss.with([&](ComPtr<ID3D11DeviceContext> context) {
 		bs.with([&](CameraBufferStateType &state, auto buffer) {
 			context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
@@ -174,13 +183,76 @@ void cst::RenderService::update()
 			context->ClearDepthStencilView(depthStencil.Get(), D3D11_CLEAR_DEPTH , 1.0f, 0);
 		});
 		
-		modelService.with("XZQuad", [&](ModelInfo info) {
-			context->Draw(info.VertexCount,0);
-		});
-		bs.with([&](TransformBufferStateType &state, auto buffer) {
+		
+		modelService.with("Teapot", [&](ModelInfo model) {
 			
-			context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
+			bs.with([&](TransformBufferStateType &state, auto buffer) {
+				XMStoreFloat4x4(&state.World, XMMatrixIdentity());
+		
+				context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
+			});
+			vector<ID3D11ShaderResourceView*> resources;
+			textureService.withResource("Noise1", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+				resources.push_back(resource.Get());
+			});
+			context->PSSetShaderResources(0, 1, resources.data());
+
+			shaderService.with("Object", [&](ComPtr < ID3D11PixelShader> shader) {
+				context->PSSetShader(shader.Get(), NULL, 0);
+			});
+
+
+			unsigned int strides = sizeof(Vertex);
+			unsigned int offsets = 0;
+			ID3D11Buffer* buffers[] = { model.Buffer.Get() };
+			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
+			context->Draw(model.VertexCount,0);
 		});
+		modelService.with("Skybox", [&](ModelInfo model) {
+			
+			bs.with([&](TransformBufferStateType &state, auto buffer) {
+				cameraService.withPosition([&](XMFLOAT3 pos) {
+					XMStoreFloat4x4(&state.World, XMMatrixTranslation(pos.x, pos.y, pos.z));
+				
+				});
+				context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
+			});
+			vector<ID3D11ShaderResourceView*> resources;
+			textureService.withResource("Skybox", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+				resources.push_back(resource.Get());
+			});
+			context->PSSetShaderResources(0, 1, resources.data());
+
+			shaderService.with("Skybox", [&](ComPtr < ID3D11PixelShader> shader) {
+				context->PSSetShader(shader.Get(), NULL, 0);
+			});
+
+
+			unsigned int strides = sizeof(Vertex);
+			unsigned int offsets = 0;
+			ID3D11Buffer* buffers[] = { model.Buffer.Get() };
+			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
+			context->Draw(model.VertexCount, 0);
+		});
+
+		/*modelService.with("Skybox", [this, &context,&bs,&textureService](ModelInfo model) {
+			bs.with([&](TransformBufferStateType &state, auto buffer) {
+				context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
+			});
+			
+
+			vector<ID3D11ShaderResourceView*> resources;
+			textureService.withResource("Skybox", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+				resources.push_back(resource.Get());
+			});
+			context->PSSetShaderResources(0, 1, resources.data());
+			unsigned int strides = sizeof(Vertex);
+			unsigned int offsets = 0;
+			ID3D11Buffer* buffers[] = { model.Buffer.Get() };
+
+			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
+			context->Draw(model.VertexCount,0);
+		});*/
 
 	});
 	ss.with([this](ComPtr<IDXGISwapChain> screen) {
