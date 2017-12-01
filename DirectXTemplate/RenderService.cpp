@@ -130,7 +130,7 @@ cst::RenderService::RenderService()
 				vector<ID3D11SamplerState*> samplers;
 				samplers.push_back(defaultSamplerState.Get());
 				context->PSSetSamplers(0, 1, samplers.data());
-				
+				context->VSSetSamplers(0, 1, samplers.data());
 				vector<ID3D11ShaderResourceView*> resources;
 				textureService.withResource("Noise1", [&](ComPtr<ID3D11ShaderResourceView> resource) {
 					resources.push_back(resource.Get());
@@ -183,7 +183,46 @@ void cst::RenderService::update()
 			context->ClearDepthStencilView(depthStencil.Get(), D3D11_CLEAR_DEPTH , 1.0f, 0);
 		});
 		
-		
+		modelService.with("Ship", [&](ModelInfo model) {
+
+			bs.with([&](TransformBufferStateType &state, auto buffer) {
+				cameraService.withPosition([&](XMFLOAT3 pos) {
+					cameraService.withFacing([&](XMFLOAT3 face) {
+						cameraService.withAngle([&](float ang) {
+							XMVECTOR p, f;
+							p = XMLoadFloat3(&pos);
+							f = XMLoadFloat3(&face);
+							auto finalPos = p + f * 5 + XMVECTOR({0,-2,0,0});
+							auto world = XMMatrixRotationY(ang+XM_PI)*XMMatrixTranslationFromVector(finalPos);
+
+							XMStoreFloat4x4(&state.World, world);
+
+						});
+					});
+				});
+
+				context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
+			});
+			vector<ID3D11ShaderResourceView*> resources;
+			textureService.withResource("Noise1", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+				resources.push_back(resource.Get());
+			});
+			context->PSSetShaderResources(0, 1, resources.data());
+
+			shaderService.with("WVP", [&](ComPtr < ID3D11VertexShader> shader) {
+				context->VSSetShader(shader.Get(), NULL, 0);
+			});
+			shaderService.with("Object", [&](ComPtr < ID3D11PixelShader> shader) {
+				context->PSSetShader(shader.Get(), NULL, 0);
+			});
+
+
+			unsigned int strides = sizeof(Vertex);
+			unsigned int offsets = 0;
+			ID3D11Buffer* buffers[] = { model.Buffer.Get() };
+			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
+			context->Draw(model.VertexCount, 0);
+		});
 		modelService.with("Teapot", [&](ModelInfo model) {
 			
 			bs.with([&](TransformBufferStateType &state, auto buffer) {
@@ -196,7 +235,10 @@ void cst::RenderService::update()
 				resources.push_back(resource.Get());
 			});
 			context->PSSetShaderResources(0, 1, resources.data());
-
+			
+			shaderService.with("WVP", [&](ComPtr < ID3D11VertexShader> shader) {
+				context->VSSetShader(shader.Get(), NULL, 0);
+			});
 			shaderService.with("Object", [&](ComPtr < ID3D11PixelShader> shader) {
 				context->PSSetShader(shader.Get(), NULL, 0);
 			});
@@ -208,8 +250,34 @@ void cst::RenderService::update()
 			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
 			context->Draw(model.VertexCount,0);
 		});
+
+		modelService.with("Ground", [&](ModelInfo model) {
+
+			bs.with([&](TransformBufferStateType &state, auto buffer) {
+				XMStoreFloat4x4(&state.World, XMMatrixTranslation(0,-3,0));
+				context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
+			});
+			vector<ID3D11ShaderResourceView*> resources;
+			textureService.withResource("Noise1", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+				resources.push_back(resource.Get());
+			});
+			context->PSSetShaderResources(0, 1, resources.data());
+			context->VSSetShaderResources(0, 1, resources.data());
+			shaderService.with("Ground", [&](ComPtr < ID3D11VertexShader> shader) {
+				context->VSSetShader(shader.Get(), NULL, 0);
+			});
+			shaderService.with("Object", [&](ComPtr < ID3D11PixelShader> shader) {
+				context->PSSetShader(shader.Get(), NULL, 0);
+			});
+
+
+			unsigned int strides = sizeof(Vertex);
+			unsigned int offsets = 0;
+			ID3D11Buffer* buffers[] = { model.Buffer.Get() };
+			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
+			context->Draw(model.VertexCount, 0);
+		});
 		modelService.with("Skybox", [&](ModelInfo model) {
-			
 			bs.with([&](TransformBufferStateType &state, auto buffer) {
 				cameraService.withPosition([&](XMFLOAT3 pos) {
 					XMStoreFloat4x4(&state.World, XMMatrixTranslation(pos.x, pos.y, pos.z));
@@ -226,6 +294,9 @@ void cst::RenderService::update()
 			shaderService.with("Skybox", [&](ComPtr < ID3D11PixelShader> shader) {
 				context->PSSetShader(shader.Get(), NULL, 0);
 			});
+			shaderService.with("WVP", [&](ComPtr < ID3D11VertexShader> shader) {
+				context->VSSetShader(shader.Get(), NULL, 0);
+			});
 
 
 			unsigned int strides = sizeof(Vertex);
@@ -235,24 +306,6 @@ void cst::RenderService::update()
 			context->Draw(model.VertexCount, 0);
 		});
 
-		/*modelService.with("Skybox", [this, &context,&bs,&textureService](ModelInfo model) {
-			bs.with([&](TransformBufferStateType &state, auto buffer) {
-				context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
-			});
-			
-
-			vector<ID3D11ShaderResourceView*> resources;
-			textureService.withResource("Skybox", [&](ComPtr<ID3D11ShaderResourceView> resource) {
-				resources.push_back(resource.Get());
-			});
-			context->PSSetShaderResources(0, 1, resources.data());
-			unsigned int strides = sizeof(Vertex);
-			unsigned int offsets = 0;
-			ID3D11Buffer* buffers[] = { model.Buffer.Get() };
-
-			context->IASetVertexBuffers(0, 1, buffers, &strides, &offsets);
-			context->Draw(model.VertexCount,0);
-		});*/
 
 	});
 	ss.with([this](ComPtr<IDXGISwapChain> screen) {

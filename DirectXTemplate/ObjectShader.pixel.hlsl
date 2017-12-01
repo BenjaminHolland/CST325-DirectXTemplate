@@ -28,11 +28,11 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     float time = TimeState.Discrete.x * 0.05;
 
-    float2 l1p1 = float2(25 * cos(time), 25 * sin(time));
-    float2 l2p1 = float2(25 * cos(time + 1), 25 * sin(time + 1));
-    float2 l3p1 = float2(25 * cos(time + 3.141), 25 * sin(time + 3.141));
+    float2 l1p1 = float2(10 * cos(time), 10 * sin(time));
+    float2 l2p1 = float2(25 * cos(time + 1), 10 * sin(time + 1));
+    float2 l3p1 = float2(10 * cos(time + 3.141), 10 * sin(time + 3.141));
 
-    float4 l1 = light(float3(l1p1.x, -10, l1p1.y), CameraState.Position, input.WorldPosition.xyz, normal);
+    float4 l1 = light(float3(l1p1.x, 10, l1p1.y), CameraState.Position, input.WorldPosition.xyz, normal);
     float4 l2 = light(float3(l2p1.x, 10, l2p1.y), CameraState.Position, input.WorldPosition.xyz, normal);
     float4 l3 = light(float3(l3p1.x,0, l3p1.y), CameraState.Position, input.WorldPosition.xyz, normal);
    

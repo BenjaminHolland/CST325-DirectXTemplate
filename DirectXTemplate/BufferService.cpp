@@ -58,9 +58,6 @@ void cst::BufferService::update()
 		cameraService.withPosition([&](auto &pos) {
 			state.Position = pos;
 		});
-		cameraService.withTarget([&](auto &target) {
-			state.Target = target;
-		});
 	});
 	with([&](TransformBufferStateType &state, auto buffer) {
 		cameraService.withProjection([&](auto proj) {

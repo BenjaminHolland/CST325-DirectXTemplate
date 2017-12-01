@@ -106,6 +106,9 @@
     <FxCompile Include="SkyboxShader.pixel.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
+    <FxCompile Include="GroundShader.vertex.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shared.hlsli">

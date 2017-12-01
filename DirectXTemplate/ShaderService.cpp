@@ -26,6 +26,23 @@ cst::ShaderService::ShaderService() :_vs(), _ps(), _layouts()
 
 		
 	});
+	screenService.with([this, &screenService](ComPtr<ID3D11Device> device) {
+		ComPtr<ID3DBlob> shaderBlob;
+		ComPtr<ID3DBlob> errorBlob;
+
+		if (FAILED(D3DCompileFromFile(L"GroundShader.vertex.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", NULL, NULL, &shaderBlob, &errorBlob))) {
+			printf("%s\n", (char*)errorBlob->GetBufferPointer());
+			throw exception((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize());
+		}
+		ComPtr<ID3D11VertexShader> vs;
+		ThrowIfFailed(device->CreateVertexShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &vs));
+		_vs.insert({ "Ground",vs });
+
+
+
+
+	});
+
 	screenService.with([&](ComPtr<ID3D11Device> device) {
 		ComPtr<ID3DBlob> shaderBlob;
 		ComPtr<ID3DBlob> errorBlob;
