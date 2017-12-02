@@ -38,8 +38,19 @@ cst::ShaderService::ShaderService() :_vs(), _ps(), _layouts()
 		ThrowIfFailed(device->CreateVertexShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &vs));
 		_vs.insert({ "Ground",vs });
 
+	});
 
+	screenService.with([this, &screenService](ComPtr<ID3D11Device> device) {
+		ComPtr<ID3DBlob> shaderBlob;
+		ComPtr<ID3DBlob> errorBlob;
 
+		if (FAILED(D3DCompileFromFile(L"GroundShader.pixel.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", NULL, NULL, &shaderBlob, &errorBlob))) {
+			printf("%s\n", (char*)errorBlob->GetBufferPointer());
+			throw exception((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize());
+		}
+		ComPtr<ID3D11PixelShader> ps;
+		ThrowIfFailed(device->CreatePixelShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &ps));
+		_ps.insert({ "Ground",ps });
 
 	});
 

@@ -17,6 +17,16 @@ cst::TextureService::TextureService()
 		DirectX::ThrowIfFailed(DirectX::CreateWICTextureFromFile(device.Get(), L"skybox_texture.jpg", NULL, &buffer));
 		_textures.insert({ "Skybox",buffer });
 	});
+	screenService.with([&](ComPtr<ID3D11Device> device) {
+		ComPtr<ID3D11ShaderResourceView> buffer;
+		DirectX::ThrowIfFailed(DirectX::CreateWICTextureFromFile(device.Get(), L"Noise2.png", NULL, &buffer));
+		_textures.insert({ "Noise2",buffer });
+	});
+	screenService.with([&](ComPtr<ID3D11Device> device) {
+		ComPtr<ID3D11ShaderResourceView> buffer;
+		DirectX::ThrowIfFailed(DirectX::CreateWICTextureFromFile(device.Get(), L"Noise1.hc.png", NULL, &buffer));
+		_textures.insert({ "Noise1hc",buffer });
+	});
 }
 void TextureService::withResource(string name, function<void(ComPtr<ID3D11ShaderResourceView>)> execute) {
 	execute(_textures.at(name));

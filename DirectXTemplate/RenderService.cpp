@@ -254,19 +254,31 @@ void cst::RenderService::update()
 		modelService.with("Ground", [&](ModelInfo model) {
 
 			bs.with([&](TransformBufferStateType &state, auto buffer) {
-				XMStoreFloat4x4(&state.World, XMMatrixTranslation(0,-3,0));
+				auto xfm = XMMatrixScaling(1, 3, 1);
+				xfm = xfm*XMMatrixTranslation(0, -3, 0) ;
+				//xfm = XMMatrixTranslation(0, -3, 0)*xfm;
+				XMStoreFloat4x4(&state.World, xfm);
 				context->UpdateSubresource(buffer.Get(), 0, NULL, &state, 0, 0);
 			});
 			vector<ID3D11ShaderResourceView*> resources;
+	
+			textureService.withResource("Noise2", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+				resources.push_back(resource.Get());
+			});
+
+			textureService.withResource("Noise1hc", [&](ComPtr<ID3D11ShaderResourceView> resource) {
+				resources.push_back(resource.Get());
+			});
+
 			textureService.withResource("Noise1", [&](ComPtr<ID3D11ShaderResourceView> resource) {
 				resources.push_back(resource.Get());
 			});
-			context->PSSetShaderResources(0, 1, resources.data());
-			context->VSSetShaderResources(0, 1, resources.data());
+			context->PSSetShaderResources(0, resources.size(), resources.data());
+			context->VSSetShaderResources(0, resources.size(), resources.data());
 			shaderService.with("Ground", [&](ComPtr < ID3D11VertexShader> shader) {
 				context->VSSetShader(shader.Get(), NULL, 0);
 			});
-			shaderService.with("Object", [&](ComPtr < ID3D11PixelShader> shader) {
+			shaderService.with("Ground", [&](ComPtr < ID3D11PixelShader> shader) {
 				context->PSSetShader(shader.Get(), NULL, 0);
 			});
 
@@ -280,6 +292,7 @@ void cst::RenderService::update()
 		modelService.with("Skybox", [&](ModelInfo model) {
 			bs.with([&](TransformBufferStateType &state, auto buffer) {
 				cameraService.withPosition([&](XMFLOAT3 pos) {
+					
 					XMStoreFloat4x4(&state.World, XMMatrixTranslation(pos.x, pos.y, pos.z));
 				
 				});

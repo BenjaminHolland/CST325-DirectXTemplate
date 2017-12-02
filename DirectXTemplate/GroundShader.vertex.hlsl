@@ -1,14 +1,20 @@
 #include <Shared.hlsli>
-Texture2D HeightMap : register(t0);
+
+Texture2D Wave1 : register(t1);
+Texture2D Wave2 : register(t2);
+
 SamplerState DefaultSampler : register(s0);
 
 VertexToPixel main(PipelineToVertex input)
 {
     VertexToPixel output;
     float4 pos = float4(input.Position.xyz, 1);
-    float2 dif = float2(TimeState.Discrete.x * 0.01, 0);
-    float r = HeightMap.SampleLevel(DefaultSampler, input.Texture.xy +dif, 0).r;
-    pos.y += r*2;
+    float2 dif = float2(TimeState.Discrete.x * 0.005, 0);
+    float2 dif2 = float2(0, TimeState.Discrete.x * 0.005+1237);
+    float h1 = Wave1.SampleLevel(DefaultSampler, input.Texture.xy +dif, 0).r;
+    float h2 = Wave1.SampleLevel(DefaultSampler, input.Texture.xy + dif2, 0).r;
+    float h = h1 + h2;
+    pos.y += h;
     pos = mul(TransformState.World, pos);
     output.WorldPosition = pos;
     pos = mul(TransformState.View, pos);

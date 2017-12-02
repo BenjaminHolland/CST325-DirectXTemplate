@@ -49,13 +49,27 @@ void cst::EventService::update()
 					cameraService.withPosition([&](XMFLOAT3 &pos) {
 						cameraService.withFacing([&](XMFLOAT3 &facing) {
 
-							pos.x -= facing.x*0.1f;
-							pos.y -= facing.y*0.1f;
-							pos.z -= facing.z*0.1f;
+							pos.x -= facing.x*1.f;
+							pos.y -= facing.y*1.f;
+							pos.z -= facing.z*1.f;
 
 						});
 					});
 				}
+				cameraService.withPosition([&](XMFLOAT3 &pos) {
+					if (pos.x > 25) {
+						pos.x = -25;
+					}
+					if (pos.x < -25) {
+						pos.x = 25;
+					}
+					if (pos.z > 25) {
+						pos.z = -25;
+					}
+					if (pos.z < -25) {
+						pos.z = 25;
+					}
+				});
 			};
 
 			default:

@@ -76,16 +76,23 @@ void loadDragonModel(vector<Vertex>& dst) {
 		}
 	}
 }
+
 void createQuadModel(vector<Vertex>& dst) {
 	XMFLOAT3 normal(0, 1, 0);
 	XMFLOAT4 color(1, 0, 1, 1);
 	XMFLOAT3 pins[100 * 100];
 	XMFLOAT2 texs[100 * 100];
-
+	auto lerp = [](float x, float y,float a) {
+		return y*a + x*(1 - a);
+	};
 	for (int y = 0; y < 100; y++) {
 		for (int x = 0; x < 100; x++) {
-			texs[y * 100 + x] = { (float)x / 100.0f,(float)y / 100.0f };
-			pins[y * 100 + x] = { (float)x / 25.0f,0.f,(float)(y / 25.0f),};
+			float nx, ny;
+			nx = x / 100.0f;
+			ny = y / 100.0f;
+
+			texs[y * 100 + x] = { nx,ny };
+			pins[y * 100 + x] = { lerp(-50.0f,50.0f,nx),0.f,lerp(-50.0f,50.0f,ny)};
 		}
 	}
 
@@ -97,12 +104,13 @@ void createQuadModel(vector<Vertex>& dst) {
 			auto bl = (y + 1) * 100 + x;
 			
 			dst.push_back({ pins[tl],normal,color,texs[tl] });
-			dst.push_back({ pins[br],normal,color,texs[br] });
+			
 			dst.push_back({ pins[bl],normal,color,texs[bl] });
-
-			dst.push_back({ pins[tl],normal,color,texs[tl] });
-			dst.push_back({ pins[tr],normal,color,texs[tr] });
 			dst.push_back({ pins[br],normal,color,texs[br] });
+			dst.push_back({ pins[tl],normal,color,texs[tl] });
+			
+			dst.push_back({ pins[br],normal,color,texs[br] });
+			dst.push_back({ pins[tr],normal,color,texs[tr] });
 		}
 	}
 }
@@ -111,7 +119,7 @@ void loadGroundModel(vector<Vertex>& dst) {
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> mats;
 	string error;
-	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "xyplanemesh.obj")) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "xyplanemesh.model.obj")) {
 		printf("%s\n", error.c_str());
 		throw exception();
 	}
@@ -140,7 +148,7 @@ void loadShipModel(vector<Vertex>& dst) {
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> mats;
 	string error;
-	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "Arwing_001.obj")) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "Arwing_001.model.obj")) {
 		printf("%s\n", error.c_str());
 		throw exception();
 	}
@@ -169,7 +177,7 @@ void loadSkyboxModel(vector<Vertex>& dst) {
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> mats;
 	string error;
-	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "skybox.obj")) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &mats, &error, "skybox.model.obj")) {
 		printf("%s\n", error.c_str());
 		throw exception();
 	}
@@ -230,7 +238,7 @@ cst::ModelService::ModelService()
 	});
 	screenService.with([this](ComPtr<ID3D11Device> device) {
 		vector<Vertex> quadModelVerts;
-		loadGroundModel(quadModelVerts);
+		createQuadModel(quadModelVerts);
 
 		D3D11_BUFFER_DESC bd = {};
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;

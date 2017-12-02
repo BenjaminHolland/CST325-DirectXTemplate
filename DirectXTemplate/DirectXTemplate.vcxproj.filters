@@ -109,6 +109,9 @@
     <FxCompile Include="GroundShader.vertex.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
+    <FxCompile Include="GroundShader.pixel.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shared.hlsli">
